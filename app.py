@@ -47,23 +47,29 @@ def load_prompt(mode):
 @app.route("/", methods=["GET", "POST"])
 def home():
     result = ""
+
     if request.method == "POST":
-        mode = request.form["mode"]
-        user_input = request.form["user_input"]
+        try:
+            mode = request.form.get("mode", "product")
+            user_input = request.form.get("user_input", "").strip()
 
-        system_prompt = load_prompt(mode)
+            if not user_input:
+                result = "請先輸入內容。"
+                return render_template_string(HTML, result=result)
 
-        response = client.responses.create(
-            model="gpt-4.1-mini",
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_input}
-            ]
-        )
+            system_prompt = load_prompt(mode)
 
-        result = response.output_text
+            response = client.responses.create(
+                model="gpt-4.1-mini",
+                input=f"{system_prompt}\n\n使用者輸入：{user_input}"
+            )
+
+            result = response.output_text if hasattr(response, "output_text") else str(response)
+
+        except Exception as e:
+            result = f"系統發生錯誤：{str(e)}"
 
     return render_template_string(HTML, result=result)
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
