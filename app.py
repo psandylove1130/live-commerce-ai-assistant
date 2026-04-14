@@ -67,7 +67,7 @@ def home():
             result = response.output_text if hasattr(response, "output_text") else str(response)
 
         except Exception as e:
-            result = f"系統發生錯誤：{str(e)}"
+            result = f"系統錯誤：{str(e)}"
 
     return render_template_string(HTML, result=result)
 
